@@ -14,11 +14,4 @@
 	<natures>
 		<nature>org.eclipse.jdt.core.javanature</nature>
 	</natures>
-	<linkedResources>
-		<link>
-			<name>src/lwjglApplet.java</name>
-			<type>1</type>
-			<locationURI>PARENT-2-PROJECT_LOC/lwjglApplet.java</locationURI>
-		</link>
-	</linkedResources>
 </projectDescription>
