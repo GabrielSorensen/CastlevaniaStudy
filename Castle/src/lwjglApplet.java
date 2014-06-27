@@ -29,6 +29,7 @@ public class lwjglApplet extends Applet {
 			gameThread.join();
 		} catch (InterruptedException e) {
 			e.printStackTrace();
+			System.exit(e.hashCode());
 		}
 	}
 
@@ -75,7 +76,7 @@ public class lwjglApplet extends Applet {
 			setVisible(true);
 		} catch (Exception e) {
 			System.err.println(e);
-			throw new RuntimeException("Unable to create display");
+			System.exit(e.hashCode());
 		}
 	}
 }
