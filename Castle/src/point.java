@@ -1,17 +1,21 @@
-public class cartesianCordinates implements Comparable<cartesianCordinates> {
+import org.lwjgl.opengl.GL11;
+
+public class point implements Comparable<point> {
 
 		public int X;
 		public int Y;
+		public int size;
 
-		public cartesianCordinates (int x, int y) {
+		public point (int x, int y, int size) {
 			this.X = x;
 			this.Y = y;
+			this.size = size;
 		}
 		public boolean equals (Object o) {
-			if (!(o instanceof cartesianCordinates)) { //check to make sure we are actually using an ordered pair,
+			if (!(o instanceof point)) { //check to make sure we are actually using an ordered pair,
 				return false;
 			}
-			cartesianCordinates op = (cartesianCordinates) o; //if true then check if the ordered pairs are equal.
+			point op = (point) o; //if true then check if the ordered pairs are equal.
 			return op.Y==this.Y;
 		}
 		public int hashCode () {
@@ -43,7 +47,16 @@ public class cartesianCordinates implements Comparable<cartesianCordinates> {
 			return ("\n[" + this.X +" , "+ this.Y + "]");
 		}
 		@Override
-		public int compareTo(cartesianCordinates o) {
+		public int compareTo(point o) {
 			return (this.Y-o.Y);
+		}
+		public void draw () {
+			GL11.glBegin(GL11.GL_QUADS);
+			GL11.glColor3f(0,0,0);
+			GL11.glVertex2f(X, Y);
+			GL11.glVertex2f(X+size, Y);
+			GL11.glVertex2f(X+size, Y+size);
+			GL11.glVertex2f(X, Y+size);
+			GL11.glEnd();
 		}
 	}

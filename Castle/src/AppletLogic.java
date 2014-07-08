@@ -10,33 +10,60 @@ import javax.imageio.ImageIO;
 
 import org.lwjgl.LWJGLException;
 import org.lwjgl.Sys;
+import org.lwjgl.input.Keyboard;
 import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.DisplayMode;
 import org.lwjgl.opengl.GL11;
 
+import static org.lwjgl.opengl.GL11.*;
 import de.matthiasmann.twl.utils.PNGDecoder;
 import de.matthiasmann.twl.utils.PNGDecoder.Format;
 
-
-
-
 public class AppletLogic implements Runnable {
+
+	private static enum State {
+		Loading, Main_Menu, Game, Test
+	}
+
+	private State state = State.Loading;
+
+	private int A;
+	private int B;
+	private int fps;
+	private int result;	
+	private long lastFPS;
+	private long lastframe = 1;
+	private int MONITOR_MAX_WIDTH = 0;
+	private int MONITOR_MAX_HEIGHT = 0;
+	private float MONITOR_ASPECT_RATIO = 0;
+	private final int MONITOR_REFRESH_RATE = Display.getDesktopDisplayMode().getFrequency();
 
 	private boolean isRunning = false;
 	private boolean isPaused = false;
+	private boolean debugging = false;
+
 	private Canvas display_parent;
-//	private boolean debugging = true;
-	int A;
-	int B;
+
+	private static ArrayList<DisplayMode> modes;
+	private DisplayMode MedDisplayMode;
 	private static DisplayMode mode = new DisplayMode(800, 600);
+
 	private static InputStream in;
-	private final int MONITOR_REFRESH_RATE = Display.getDesktopDisplayMode().getFrequency();
-	private String MONITOR_MAX_RESOLUTION = "not currently set";
-	private long lastframe = 1; 
+
+	private String MONITOR_MAX_RESOLUTION_String = "not currently set";
+	
+	private ArrayList<point> points = new ArrayList<point>();
+
+
 
 	public AppletLogic(Canvas display_parent) {
 		//dont run anything on instantiate object, just grab passed values and set up the thread.
+		try {
+			Display.setParent(display_parent);
+		} catch (LWJGLException e) {
+			e.printStackTrace();
+		}
 	}
 	public AppletLogic() {
 		//dont run anything on instantiate object, just grab passed values and set up the thread.
@@ -45,15 +72,170 @@ public class AppletLogic implements Runnable {
 	public void run() {
 		try {
 			//parse prefs and create them if non existant
+			lastFPS = getTime();
+			initDisplay();
+			initGL();
+			setRunning(true);
+			state = State.Main_Menu;
+			//game Loop
+			resume:
+				while (isRunning) {
+					while (isPaused) {
+						//do stuff in a loop until ready to continue
+						break resume;
+					}
+					frame(); // one round of logic and input
+					Display.update(); //note, This also polls/updates the input but does not process it.
+					render();
+					Display.setTitle("Fps:  " + result);
+					fps++;
+					FPS();
+					Display.sync(60);//get this framereate from the preferences file.
+					if (!Display.isFullscreen() && Display.wasResized()) {
+						checkWIndowSize();
+					}
+					if (Display.isCloseRequested()) {
+						//we can save and clean things up here if we want to,
+						//and we probably should.
+						System.exit(0);
+					}
+				}
+			//eventually
+			Display.destroy();
+		} catch (Exception e) {
+			e.printStackTrace();
+			System.exit(e.hashCode());
+		}
+	}
+	private void frame() {
+		try {
+			switch (state) {
+			case Loading:
+				//we cant do much while loading, in fact nothing?
+				break;
+			case Main_Menu:
+				//we are doing input polls to update values and then logic on those and other values.
+				if (Mouse.next() ) {
+					if (Mouse.isButtonDown(0)) {
+						int x = Mouse.getX();
+						int y = Mouse.getY();
+						if (debugging) {
+							System.out.println("Left Mouse down at: " + x + ","
+									+ y);
+						}
+					}
+					if (Mouse.isButtonDown(1)) {
+						int x = Mouse.getX();
+						int y = Mouse.getY();
+						if (debugging) {
+							System.out.println("Right mouse down at:  " + x
+									+ "," + y);
+						}
+						point p = new point(x, y, 10);
+						points.add(p);
+					}
 
-			if (display_parent != null) {
-				Display.setParent(display_parent);
-			} else {
-				Display.setParent(null);
+				}
+				if (Keyboard.next()) {
+					if (Keyboard.getEventKey() == Keyboard.KEY_F && !Keyboard.isRepeatEvent() && Keyboard.getEventKeyState()) {
+						if (!Display.isFullscreen()) {
+							Display.setDisplayMode(MedDisplayMode);
+							Display.setFullscreen(true);
+							System.err.println("trying to enable fullscreen");
+						} else {
+							Display.setFullscreen(false);
+							System.out.println("disabling fullscreen");
+						}
+					}
+				}
+				break;
+			case Game:
+				
+				break;
+			case Test:
+				
+				break;
 			}
+		} catch (LWJGLException e) {
+			System.out.println("Crashed! Error: " + e.getMessage());
+			System.exit(e.hashCode());
+		}
+	}
+	private void render() {
+		GL11.glClear(GL11.GL_COLOR_BUFFER_BIT);
+		//backgroundRender
+		switch (state) {
+		case Loading:
+			  glColor3f(1.0f, 0f, 0f);
+              glRectf(0, 0, Display.getHeight(), Display.getWidth());
+              break;
+		case Main_Menu:
+			  glColor3f(0.0f, 1.0f, 0.0f);
+              glRectf(0, 0, Display.getWidth(), Display.getHeight());
+              break;
+		case Game:
+			  glColor3f(0.0f, 0.0f, 1.0f);
+              glRectf(0, 0, Display.getHeight(), Display.getWidth());
+              break;
+		case Test:
+			  glColor3f(1.0f, 0.0f, 1.0f);
+              glRectf(0, 0, Display.getHeight(), Display.getWidth());
+              break;
+		}
+		for (point p : points) {
+			p.draw();
+		}
+	}
+	private void checkWIndowSize() {
+		try {
+			int a = Display.getWidth();
+			int b = Display.getHeight();
+			if (a != A || b != B) {
+				A = a;
+				B = b;
+				if (A < 400) {
+					A = 400;
+					mode = new DisplayMode(A, B);
+					Display.setDisplayMode(mode);
+				} else if (A > MONITOR_MAX_WIDTH) {
+					A = 400;
+					mode = new DisplayMode(A, B);
+					Display.setDisplayMode(mode);
+				}
+				if (B < 300) {
+					B = 300;
+					mode = new DisplayMode(A, B);
+					Display.setDisplayMode(mode);
+				} else if (B > MONITOR_MAX_HEIGHT) {
+					B = 300;
+					mode = new DisplayMode(A, B);
+					Display.setDisplayMode(mode);
+				}
+				if (debugging) {
+					System.out.println(A + ":" + B);
+				}
+				DisplayMode displaymode = null;
+				for (DisplayMode m : modes) {
+					if (m.getWidth() == Display.getWidth() && m.getHeight() == Display.getHeight() && m.isFullscreenCapable()) {
+						displaymode = m;
+						Display.setDisplayMode(displaymode);
+					}
+				}
+				if (displaymode == null) {
+					mode = new DisplayMode(A, B);
+					Display.setDisplayMode(mode);
+				}
+			}
+		} catch (LWJGLException e) {
+			System.err.println(e.getMessage());
+			System.exit(e.hashCode());
+		}
+	}
+	private void initDisplay () {
+		try {
 			//setup and finalize display
 			Display.setResizable(true);
-			Display.setDisplayMode(mode);
+			Display.setDisplayMode(new DisplayMode(800, 600));
 			//set our icon, idea credit: Chris Molini
 			ByteBuffer [] imgs = new ByteBuffer[3];
 			BufferedImage icon = ImageIO.read(AppletLogic.class.getResource("/assets/bat16.png"));
@@ -65,83 +247,68 @@ public class AppletLogic implements Runnable {
 			Display.setIcon(imgs);
 			Display.create();
 			System.out.println("Open GL version: " + GL11.glGetString(GL11.GL_VERSION));
-			ArrayList<DisplayMode> modes = new ArrayList<DisplayMode>();
-			MONITOR_MAX_RESOLUTION = "0";
-			int maxWidth = 0;
-			cartesianCordinates resolution = new cartesianCordinates(0, 0);
+			modes = new ArrayList<DisplayMode>();
+			MONITOR_MAX_RESOLUTION_String = "0";
+			
+			point resolution = new point(0, 0, 0);
 			for (DisplayMode m : Display.getAvailableDisplayModes()) {
 				if (m.toString().contains("32 @"+MONITOR_REFRESH_RATE+"Hz")) {
-					System.out.println(m.toString());
+					if (debugging) {
+						System.out.println(m.toString());
+					}
 					modes.add(m);
 					String [] s = m.toString().split(" ");
-					resolution = new cartesianCordinates(Integer.parseInt(s[0]), Integer.parseInt(s[2]));
-					if (resolution.getX() > maxWidth) {
-						MONITOR_MAX_RESOLUTION = m.toString();
-						maxWidth = Integer.parseInt(s[0]);
+					resolution = new point(Integer.parseInt(s[0]), Integer.parseInt(s[2]), 0);
+					if (resolution.getX() > MONITOR_MAX_WIDTH) {
+						MONITOR_MAX_RESOLUTION_String = m.toString();
+						MONITOR_MAX_HEIGHT = Integer.parseInt(s[2]);
+						MONITOR_MAX_WIDTH = Integer.parseInt(s[0]);
+						MONITOR_ASPECT_RATIO = (float) MONITOR_MAX_WIDTH / MONITOR_MAX_HEIGHT;
 					}
 				}
 			}
-			System.out.println("Max rezolution is: " + MONITOR_MAX_RESOLUTION);
-			initGL();
-			setRunning(true);
-			//game Loop
-			resume:
-				while (isRunning) {
-					frame(); // one round of logic and input
-					Display.update(); //note, This also polls/updates the input but does not process it.
-					Display.sync(MONITOR_REFRESH_RATE);//get this framereate from the preferences file.
-					if (!Display.isFullscreen()) {
-						checkWIndowSize();
-					}
-
-					while (isPaused) {
-						//do stuff in a loop until ready to continue
-						break resume;
-					}
-
-					if (Display.isCloseRequested()) {
-						//we can save and clean things up here if we want to,
-						//we probably should.
-						System.exit(0);
-					}
-				}
-
-
-
-
-			//eventually
-			Display.destroy();
+			MedDisplayMode = modes.get(3);
+			checkWIndowSize();
+			if (debugging) {
+				System.out.println("Max rez is: "
+						+ MONITOR_MAX_RESOLUTION_String
+						+ ", and Monitor Aspect ratio is: "
+						+ MONITOR_ASPECT_RATIO);
+			}
 		} catch (LWJGLException e) {
-			System.err.println("error creating display... \n" + e.getMessage());
+			e.printStackTrace();
 			System.exit(e.hashCode());
 		} catch (IOException e) {
 			e.printStackTrace();
 			System.exit(e.hashCode());
 		}
 	}
-
-	private void frame() {
-		//we are doing input polls to update values and then logic on those and other values.
-		//INPUT FIRST!
-		if (Mouse.isButtonDown(0)) {
-			int x = Mouse.getX();
-			int y = Mouse.getY();
-			System.out.println("Mouse down at: " + x + "," + y);
+	private void initGL() {
+		//start our GL stuff here
+		 glMatrixMode(GL_PROJECTION);
+		 	glLoadIdentity();
+	        glOrtho(0, Display.getWidth(), 0, Display.getHeight(), MONITOR_ASPECT_RATIO, -1 * MONITOR_ASPECT_RATIO);
+	        glMatrixMode(GL_MODELVIEW);
+	}
+	public ByteBuffer loadPNG(String location) {
+		try {
+			in = new FileInputStream(location);
+			PNGDecoder decoder =  new PNGDecoder(in);
+			if (debugging) {
+				System.out.println("width= " + decoder.getWidth());
+				System.out.println("height= " + decoder.getHeight());
+			}
+			ByteBuffer buffer = ByteBuffer.allocateDirect(4 * decoder.getWidth() * decoder.getHeight());
+			decoder.decode(buffer, 4 * decoder.getWidth(), Format.BGRA);
+			buffer.flip();
+			in.close();
+			return buffer;
+		} catch (Exception e) {
+			System.out.println("Crashed! Error: " + e.getMessage());
+			System.exit(e.hashCode());
 		}
-		
-		
-		
-		
-		
-		//THEN LOGIC!
-		
-		
-		
-		
-		
-		
-		
-	
+		//if the buffer fails, return null. Hopefully because it will crash the app
+		return null;
 	}
 	public ByteBuffer imageToByteBuffer(BufferedImage icon) {
 		byte [] buffer = new byte[icon.getWidth() * icon.getHeight() * 4];
@@ -158,56 +325,6 @@ public class AppletLogic implements Runnable {
 		}
 		return ByteBuffer.wrap(buffer);
 	}
-	public ByteBuffer loadPNG(String location) {
-		try {
-			in = new FileInputStream(location);
-			PNGDecoder decoder =  new PNGDecoder(in);
-			System.out.println("width= " + decoder.getWidth());
-			System.out.println("height= " + decoder.getHeight());
-			ByteBuffer buffer = ByteBuffer.allocateDirect(4 * decoder.getWidth() * decoder.getHeight());
-			decoder.decode(buffer, 4 * decoder.getWidth(), Format.BGRA);
-			buffer.flip();
-			in.close();
-			return buffer;
-		} catch (Exception e) {
-			System.out.println("Crashed! Error: " + e.getMessage());
-			System.exit(e.hashCode());
-		}
-		//if the buffer fails, return null. Hopefully because it will crash the app
-		return null;
-	}
-	private void checkWIndowSize() {
-		try {
-			int a = Display.getWidth();
-			int b = Display.getHeight();
-			if (a != A || b != B) {
-				A = a;
-				B = b;
-				if (A < 400) {
-					A = 400;
-					mode = new DisplayMode(A, B);
-					Display.setDisplayMode(mode);
-				} else if (A > 3000) {
-					A = 400;
-					mode = new DisplayMode(A, B);
-					Display.setDisplayMode(mode);
-				}
-				if (B < 300) {
-					B = 300;
-					mode = new DisplayMode(A, B);
-					Display.setDisplayMode(mode);
-				} else if (B > 3000) {
-					B = 300;
-					mode = new DisplayMode(A, B);
-					Display.setDisplayMode(mode);
-				}
-				System.out.println(A + ":" + B);
-			}
-		} catch (LWJGLException e) {
-			System.err.println(e.getMessage());
-			System.exit(e.hashCode());
-		}
-	}
 	public long getTime() {
 		return (Sys.getTime() * 1000 / Sys.getTimerResolution() );
 	} 
@@ -216,6 +333,16 @@ public class AppletLogic implements Runnable {
 		int delta = (int) (time - lastframe );
 		lastframe = time;
 		return delta;
+	}
+	public void FPS() {
+		if (getTime() - lastFPS > 1000) {
+			result = fps;
+			fps = 0;
+			lastFPS += 1000;
+		} 
+	}
+	public int getFPS() {
+		return result;
 	}
 	public void pause() {
 
@@ -236,11 +363,8 @@ public class AppletLogic implements Runnable {
 	public void setPaused(boolean isPaused) {
 		this.isPaused = isPaused;
 	}
-	public void initGL() {
-		//start our GL stuff here
-
-	}
 	public void killSwitch() {
 		Display.destroy();
+		System.exit(666);
 	}
 }
