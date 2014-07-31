@@ -16,6 +16,9 @@ import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.DisplayMode;
 import org.lwjgl.opengl.GL11;
 
+import Enemies.En1;
+import Entities.Entity;
+import Entities.Player;
 import static org.lwjgl.opengl.GL11.*;
 import de.matthiasmann.twl.utils.PNGDecoder;
 import de.matthiasmann.twl.utils.PNGDecoder.Format;
@@ -41,8 +44,9 @@ public class AppletLogic implements Runnable {
 
 	private boolean isRunning = false;
 	private boolean isPaused = false;
-	private boolean debugging = false;
+	private boolean debugging = true;
 
+	@SuppressWarnings("unused")
 	private Canvas display_parent;
 
 	private static ArrayList<DisplayMode> modes;
@@ -53,7 +57,13 @@ public class AppletLogic implements Runnable {
 
 	private String MONITOR_MAX_RESOLUTION_String = "not currently set";
 	
-	private ArrayList<point> points = new ArrayList<point>();
+	private Player player = null; //NOTE!!!!!!!!!!!!!!!!!
+	//Refernces to other OpenGL Objects (any with openGL calls)
+	//require openGL/Display 
+
+	private ArrayList<point> points = new ArrayList<point>();	
+	private ArrayList<Entity> entities = new ArrayList<Entity>();
+
 
 
 
@@ -90,7 +100,7 @@ public class AppletLogic implements Runnable {
 					Display.setTitle("Fps:  " + result);
 					fps++;
 					FPS();
-					Display.sync(60);//get this framereate from the preferences file.
+					Display.sync(70);//get this framereate from the preferences file.
 					if (!Display.isFullscreen() && Display.wasResized()) {
 						checkWIndowSize();
 					}
@@ -122,7 +132,10 @@ public class AppletLogic implements Runnable {
 						if (debugging) {
 							System.out.println("Left Mouse down at: " + x + ","
 									+ y);
+							System.err.println("entities size: " + entities.size());
 						}
+						En1 e = new En1(x, y, 20, 20);
+						entities.add(e);
 					}
 					if (Mouse.isButtonDown(1)) {
 						int x = Mouse.getX();
@@ -130,6 +143,7 @@ public class AppletLogic implements Runnable {
 						if (debugging) {
 							System.out.println("Right mouse down at:  " + x
 									+ "," + y);
+							System.err.println("points size: " + points.size());
 						}
 						point p = new point(x, y, 10);
 						points.add(p);
@@ -150,10 +164,10 @@ public class AppletLogic implements Runnable {
 				}
 				break;
 			case Game:
-				
+
 				break;
 			case Test:
-				
+
 				break;
 			}
 		} catch (LWJGLException e) {
@@ -162,29 +176,35 @@ public class AppletLogic implements Runnable {
 		}
 	}
 	private void render() {
-		GL11.glClear(GL11.GL_COLOR_BUFFER_BIT);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		//backgroundRender
 		switch (state) {
 		case Loading:
-			  glColor3f(1.0f, 0f, 0f);
-              glRectf(0, 0, Display.getHeight(), Display.getWidth());
-              break;
+			glColor3f(1.0f, 0f, 0f);
+			glRectf(0, 0, Display.getHeight(), Display.getWidth());
+			break;
 		case Main_Menu:
-			  glColor3f(0.0f, 1.0f, 0.0f);
-              glRectf(0, 0, Display.getWidth(), Display.getHeight());
-              break;
+			glColor3f(0.0f, 1.0f, 0.0f);
+			glRectf(0, 0, Display.getWidth(), Display.getHeight());
+			break;
 		case Game:
-			  glColor3f(0.0f, 0.0f, 1.0f);
-              glRectf(0, 0, Display.getHeight(), Display.getWidth());
-              break;
+			glColor3f(0.0f, 0.0f, 1.0f);
+			glRectf(0, 0, Display.getHeight(), Display.getWidth());
+			break;
 		case Test:
-			  glColor3f(1.0f, 0.0f, 1.0f);
-              glRectf(0, 0, Display.getHeight(), Display.getWidth());
-              break;
+			glColor3f(1.0f, 0.0f, 1.0f);
+			glRectf(0, 0, Display.getHeight(), Display.getWidth());
+			break;
+		}
+		for (Entity e : entities) {
+			if (e instanceof En1) {
+				((En1) e).deltaDraw(getDelta());
+			}
 		}
 		for (point p : points) {
 			p.draw();
 		}
+
 	}
 	private void checkWIndowSize() {
 		try {
@@ -249,7 +269,7 @@ public class AppletLogic implements Runnable {
 			System.out.println("Open GL version: " + GL11.glGetString(GL11.GL_VERSION));
 			modes = new ArrayList<DisplayMode>();
 			MONITOR_MAX_RESOLUTION_String = "0";
-			
+
 			point resolution = new point(0, 0, 0);
 			for (DisplayMode m : Display.getAvailableDisplayModes()) {
 				if (m.toString().contains("32 @"+MONITOR_REFRESH_RATE+"Hz")) {
@@ -285,10 +305,11 @@ public class AppletLogic implements Runnable {
 	}
 	private void initGL() {
 		//start our GL stuff here
-		 glMatrixMode(GL_PROJECTION);
-		 	glLoadIdentity();
-	        glOrtho(0, Display.getWidth(), 0, Display.getHeight(), MONITOR_ASPECT_RATIO, -1 * MONITOR_ASPECT_RATIO);
-	        glMatrixMode(GL_MODELVIEW);
+		glMatrixMode(GL_PROJECTION);
+		glLoadIdentity();
+		glOrtho(0, Display.getWidth(), 0, Display.getHeight(), MONITOR_ASPECT_RATIO, -1 * MONITOR_ASPECT_RATIO);
+		glMatrixMode(GL_MODELVIEW);
+		glViewport(0, 0, Display.getWidth(), Display.getHeight());
 	}
 	public ByteBuffer loadPNG(String location) {
 		try {

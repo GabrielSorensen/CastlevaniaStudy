@@ -31,7 +31,7 @@ public class NonAppletGame {
 				
 			}
 		} catch (Exception inter) {
-			System.out.println("Something went wrong with the main logic thread! \nExiting: " + inter.hashCode());
+		System.out.println("Something went wrong with the main logic thread! \nExiting: " + inter.getMessage() + "\nError Code: " + inter.hashCode());
 		}
 	}
 	private static void stopLWJGL() {

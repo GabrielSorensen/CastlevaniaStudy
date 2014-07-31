@@ -3,10 +3,10 @@ package Entities;
 
 public abstract class AbstractMoveableEntitty extends AbstractEntity implements MoveableEntity {
 
-    private double dx;
-    private double dy;
+    private float dx;
+    private float dy;
 
-    public AbstractMoveableEntitty(double x, double y, double width, double height) {
+    public AbstractMoveableEntitty(float x, float y, float width, float height) {
         super(x, y, width, height);
         this.dx = 0;
         this.dy = 0;
@@ -18,19 +18,19 @@ public abstract class AbstractMoveableEntitty extends AbstractEntity implements 
         this.y += delta * dy;
     }
 
-    public double getDX() {
+    public float getDX() {
         return dx;
     }
 
-	public double getDY() {
+	public float getDY() {
         return dy;
     }
 
-    public void setDX(double dx) {
+    public void setDX(float dx) {
         this.dx = dx;
     }
 
-    public void setDY(double dy) {
+    public void setDY(float dy) {
         this.dy = dy;
     }
 

@@ -52,7 +52,7 @@ public class point implements Comparable<point> {
 		}
 		public void draw () {
 			GL11.glBegin(GL11.GL_QUADS);
-			GL11.glColor3f(0,0,0);
+			GL11.glColor3f(0,0,1f);
 			GL11.glVertex2f(X, Y);
 			GL11.glVertex2f(X+size, Y);
 			GL11.glVertex2f(X+size, Y+size);

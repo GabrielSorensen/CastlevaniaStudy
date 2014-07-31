@@ -7,16 +7,16 @@ import org.newdawn.slick.opengl.Texture;
 
 public abstract class AbstractEntity implements Entity {
 
-	protected double x;
-	protected double y;
-	protected double width;
-	protected double height;
-	protected double AT;
+	protected float x;
+	protected float y;
+	protected float width;
+	protected float height;
+	protected float AT;
 	protected Texture texture;
 	private final Rectangle hitbox = new Rectangle();
 
 
-	public AbstractEntity(double x, double y, double width, double height) {
+	public AbstractEntity(float x, float y, float width, float height) {
 		this.x = x;
 		this.y = y;
 		this.width = width;
@@ -24,56 +24,56 @@ public abstract class AbstractEntity implements Entity {
 		
 	}
 
-	public void setLocation(double x, double y) {
+	public void setLocation(float x, float y) {
 		this.x = x;
 		this.y = y;
 	}
 
 	@Override
-	public void setX(double x) {
+	public void setX(float x) {
 		this.x = x;
 	}
 
 	@Override
-	public void setY(double y) {
+	public void setY(float y) {
 		this.y = y;
 	}
 
 	@Override
-	public void setWidth(double width) {
+	public void setWidth(float width) {
 		this.width = width;
 	}
 
 	@Override
-	public void setHeight(double height) {
+	public void setHeight(float height) {
 		this.height = height;
 	}
 
 	@Override
-	public double getX() {
+	public float getX() {
 		return x;
 	}
 
 	@Override
-	public double getY() {
+	public float getY() {
 		return y;
 	}
 
-	public double getCenterX() {
+	public float getCenterX() {
 		return x+(width/2);
 	}
 
 	@Override
-	public double getCenterY() {
+	public float getCenterY() {
 		return y+(height/2);
 	}
 	@Override
-	public double getHeight() {
+	public float getHeight() {
 		return height;
 	}
 
 	@Override
-	public double getWidth() {
+	public float getWidth() {
 		return width;
 	}
 
@@ -82,7 +82,7 @@ public abstract class AbstractEntity implements Entity {
 		hitbox.setBounds((int) x, (int) y, (int) width, (int) height);
 		return hitbox.intersects(other.getX(), other.getY(), other.getWidth(), other.getHeight());
 	}
-	public double getIntersectAt(Entity other, Entity primary) {
+	public float getIntersectAt(Entity other, Entity primary) {
 		if (intersects(other)) {
 			AT= other.getY() - primary.getY();
 			return AT;

@@ -3,11 +3,11 @@ package Entities;
 
 public interface MoveableEntity extends Entity {
 
-    public double getDX();
+    public float getDX();
 
-    public double getDY();
+    public float getDY();
 
-    public void setDX(double dx);
+    public void setDX(float dx);
 
-    public void setDY(double dy);
+    public void setDY(float dy);
 }
