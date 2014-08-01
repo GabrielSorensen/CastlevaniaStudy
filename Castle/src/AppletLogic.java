@@ -184,7 +184,7 @@ public class AppletLogic implements Runnable {
 			glRectf(0, 0, Display.getHeight(), Display.getWidth());
 			break;
 		case Main_Menu:
-			glColor3f(0.0f, 1.0f, 0.0f);
+			glColor3f(0.0f, 1.0f, 1.0f);
 			glRectf(0, 0, Display.getWidth(), Display.getHeight());
 			break;
 		case Game:
@@ -204,7 +204,7 @@ public class AppletLogic implements Runnable {
 		for (point p : points) {
 			p.draw();
 		}
-
+		entities.clear();
 	}
 	private void checkWIndowSize() {
 		try {

@@ -26,10 +26,10 @@ public class En1 extends AbstractMoveableEntitty {
 		super(x, y, width, height);
 		// Vertices, the order is not important.
 		float[] vertices = {
-				x, y+height, 0f,	// Left top			ID: 0
-				x, y, 0f,	// Left bottom		ID: 1
-				x+width, y, 0f,	// Right bottom		ID: 2
-				x+width, y+height, 0f		// Right left		ID: 3
+				x, y+height, 0f,		//ID: 0
+				x, y, 0f,				//ID: 1
+				x+width, y, 0f,			//ID: 2
+				x+width, y+height, 0f	//ID: 3
 		};
 		// Sending data to OpenGL requires the usage of (flipped) byte buffers
 		FloatBuffer verticesBuffer = BufferUtils.createFloatBuffer(vertices.length);
@@ -38,9 +38,9 @@ public class En1 extends AbstractMoveableEntitty {
 		// OpenGL expects to draw vertices in counter clockwise order by default
 		byte[] indices = {
 				// Left bottom triangle
-				0, 2, 1,
+				0, 3, 2,
 				// Right top triangle
-				2, 3, 0
+				0, 2, 1
 		};
 		indicesCount = indices.length;
 		ByteBuffer indicesBuffer = BufferUtils.createByteBuffer(indicesCount);
