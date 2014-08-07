@@ -11,23 +11,84 @@ import org.lwjgl.opengl.GL15;
 import org.lwjgl.opengl.GL20;
 import org.lwjgl.opengl.GL30;
 
-public class Player extends AbstractMoveableEntitty {
+public class Player  {
 
+	//	private int [] stats = {10, 10, 10, 10, 10, 10}; //figure this out later.
+	float[] vertices;
 	private int vaoId = 0;
 	private int vboId = 0;
 	private int vboiId = 0;
 	private int indicesCount = 0;
 	private int delta;
+	private float x;
+	private float y;
 	private float height;
 	private float width;
-	//	private int [] stats = {10, 10, 10, 10, 10, 10};
+	private int dx;
+	private int dy;
+	public float getX() {
+		return x;
+	}
 
+	public void setX(float x) {
+		this.x = x;
+	}
 
-	public Player(float x, float y, float width, float height) {
-		super(x, y, width, height);
+	public float getY() {
+		return y;
+	}
+
+	public void setY(float y) {
+		this.y = y;
+	}
+
+	public float getHeight() {
+		return height;
+	}
+
+	public void setHeight(float height) {
+		this.height = height;
+	}
+
+	public float getWidth() {
+		return width;
+	}
+
+	public void setWidth(float width) {
+		this.width = width;
+	}
+
+	public int getDx() {
+		return dx;
+	}
+
+	public void setDx(int dx) {
+		this.dx = dx;
+	}
+
+	public int getDy() {
+		return dy;
+	}
+
+	public void setDy(int dy) {
+		this.dy = dy;
+	}
+	public void MoveTo(int x, int y) {
+		this.x = x;
+		this.y = y;
+	}
+	public void setDimentions (float width, float height) {
 		this.width = width;
 		this.height = height;
-		float[] vertices = {
+	}
+
+	public Player(float x, float y, float width, float height) {
+//		super(x, y, width, height);
+		this.x = x;
+		this.y = y;
+		this.width = width;
+		this.height = height;
+		vertices = new float [] {
 				x, y+height, 0f, 1f, 	// Left top			ID: 0
 				x, y, 0f, 1f,	// Left bottom		ID: 1
 				x+width, y, 0f, 1f,	// Right bottom		ID: 2
@@ -38,9 +99,10 @@ public class Player extends AbstractMoveableEntitty {
 		verticesBuffer.flip();
 		byte[] indices = {
 				// Left bottom triangle
-				0, 2, 1,
+				0, 3, 2,
+				0, 2, 1
 				// Right top triangle
-				2, 3, 0
+				
 		};
 		indicesCount = indices.length;
 		ByteBuffer indicesBuffer = BufferUtils.createByteBuffer(indicesCount);
@@ -60,9 +122,8 @@ public class Player extends AbstractMoveableEntitty {
 		GL15.glBindBuffer(GL15.GL_ELEMENT_ARRAY_BUFFER, 0);
 	}
 
-	@Override
 	public void draw() {
-		super.update(delta);
+		update(delta);
 		GL11.glClear(GL11.GL_COLOR_BUFFER_BIT);
 		GL30.glBindVertexArray(vaoId);
 		GL20.glEnableVertexAttribArray(0);
@@ -72,6 +133,17 @@ public class Player extends AbstractMoveableEntitty {
 		GL20.glDisableVertexAttribArray(0);
 		GL30.glBindVertexArray(0);
 	}
+	private void update(int delta2) {
+		this.x += delta * dx;
+        this.y += delta * dy;
+        vertices = new float [] {
+				x, y+height, 0f, 1f, 	// Left top			ID: 0
+				x, y, 0f, 1f,	// Left bottom		ID: 1
+				x+width, y, 0f, 1f,	// Right bottom		ID: 2
+				x+width, y+height, 0f, 1f		// Right left		ID: 3
+		};
+	}
+
 	public void destroyMe() {
 		GL20.glDisableVertexAttribArray(0);
 		GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, 0);

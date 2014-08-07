@@ -87,6 +87,7 @@ public class AppletLogic implements Runnable {
 			initGL();
 			setRunning(true);
 			state = State.Main_Menu;
+			checkWIndowSize();
 			//game Loop
 			resume:
 				while (isRunning) {
@@ -134,8 +135,7 @@ public class AppletLogic implements Runnable {
 									+ y);
 							System.err.println("entities size: " + entities.size());
 						}
-						En1 e = new En1(x, y, 20, 20);
-						entities.add(e);
+						player.MoveTo(x, y);
 					}
 					if (Mouse.isButtonDown(1)) {
 						int x = Mouse.getX();
@@ -205,6 +205,7 @@ public class AppletLogic implements Runnable {
 			p.draw();
 		}
 		entities.clear();
+		player.draw();
 	}
 	private void checkWIndowSize() {
 		try {
@@ -310,6 +311,7 @@ public class AppletLogic implements Runnable {
 		glOrtho(0, Display.getWidth(), 0, Display.getHeight(), MONITOR_ASPECT_RATIO, -1 * MONITOR_ASPECT_RATIO);
 		glMatrixMode(GL_MODELVIEW);
 		glViewport(0, 0, Display.getWidth(), Display.getHeight());
+		player = new Player(50, 50, 64, 64);
 	}
 	public ByteBuffer loadPNG(String location) {
 		try {
