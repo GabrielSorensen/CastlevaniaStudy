@@ -7,6 +7,10 @@ A java engine/game based off the 2D castlevania games.
 
 '''THIS HAS BEEN DEPRECIATED IN FAVOR OF LWJGL 3.2'''
 
+'''Engine2d is the direct predesessor of this project'''
+
+'''Again, this project has died.'''
+
 This Repository is a collection of files and other junk that I either wrote or used.
 The goal of this project is to create a framework for a game,
 and possibly make some sort of playable game off of that framework.
